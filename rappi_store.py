@@ -7,27 +7,15 @@ from datetime import datetime
 
 def aisleURL(url:str, aisle:str)->str:
     """Create aisle URL"""
-    start_index = url.rfind("h")  
-    end_index = url.rfind(".json")  
-
-    if start_index != -1 and end_index != -1:
-        url = url[start_index:end_index]
-        new_url = f'{url}/{aisle}.json'
-    else:
-        return print("Something went wrong")
-    return new_url
+    string = url.replace(".json", "")  
+    aisle_url = f'{string}/{aisle}.json'
+    return aisle_url
 
 def subAisleURL(url:str, aisle:str, sub_aisle:str)->str:
     """Create subAisle URL"""
-    start_index = url.rfind("h")  
-    end_index = url.rfind(".json")  
-
-    if start_index != -1 and end_index != -1:
-        url = url[start_index:end_index]
-        new_url = f'{url}/{aisle}/{sub_aisle}.json'
-    else:
-        return print("Subaisle not found in the string.")
-    return new_url
+    string = url.replace(".json", "")
+    subAisle_url = f'{string}/{aisle}/{sub_aisle}.json'
+    return subAisle_url
 
 def storeId(url:str)->str:
     """find store_id from URL"""
@@ -73,15 +61,16 @@ def subAisles(url:str, aisle:str)->list:
     """return a subAisles list of a given store aisle"""
     sub_aisles_list=[]
     store_id=storeId(url)
-    sub_aisle_url=aisleURL(url, aisle)
+
+    aisle_url=aisleURL(url, aisle)
     request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/catalogo'}
-    response = requests.get(sub_aisle_url, headers=request_heather)
+    response = requests.get(aisle_url, headers=request_heather)
 
     if response.status_code == 429:
         print('TOO MANY PRODUCTS REQUESTS: WAIT 1m')
         time.sleep(60)
         print('REQUESTS STARTED')
-        response = requests.get(sub_aisle_url, headers=request_heather)
+        response = requests.get(aisle_url, headers=request_heather)
         json_data = response.json()
     else:
         json_data = response.json()

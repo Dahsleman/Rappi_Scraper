@@ -7,10 +7,10 @@ from datetime import datetime
 
 def search(url:str)->dict:
     string_dict = {}
-    """find sub_aisle"""
-    start_index = url.rfind("/") + 1  # Find the index of the last '/' in url
-    end_index = url.rfind(".json")  # Find the index of '.json'
 
+    """find sub_aisle"""
+    start_index = url.rfind("/") + 1 
+    end_index = url.rfind(".json") 
     if start_index != -1 and end_index != -1:
         sub_aisle = url[start_index:end_index]
         string_dict['sub_aisle'] = sub_aisle 
@@ -18,22 +18,23 @@ def search(url:str)->dict:
         return print("Subaisle not found in the string.")
 
     """find aisle"""
-    pattern = rf"/([a-zA-Z]+)/{sub_aisle}.json"
-    match = re.search(pattern, url)
-
-    if match:
-        aisle = match.group(1)
-        string_dict['aisle'] = aisle
+    string = url.replace(f"/{sub_aisle}.json", ".json")
+    start_index = string.rfind("/") + 1 
+    end_index = string.rfind(".json")  
+    if start_index != -1 and end_index != -1:
+        aisle = url[start_index:end_index]
+        string_dict['aisle'] = aisle 
+        print(aisle)
     else:
         return print("Aisle not found in the string.")
 
     """find store"""
-    pattern = rf"/([^/]+)/{aisle}"
-    match = re.search(pattern, url)
-
-    if match:
-        store = match.group(1)
-        string_dict['store'] = store
+    string = url.replace(f"/{aisle}/{sub_aisle}.json", ".json")
+    start_index = string.rfind("/") + 1 
+    end_index = string.rfind(".json")  
+    if start_index != -1 and end_index != -1:
+        store = url[start_index:end_index]
+        string_dict['store'] = store 
     else:
         return print("Store not found in the string.")
     

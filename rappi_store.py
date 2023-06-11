@@ -6,6 +6,7 @@ import csv
 from datetime import datetime
 
 def aisleURL(url:str, aisle:str)->str:
+    """Create aisle URL"""
     start_index = url.rfind("h")  
     end_index = url.rfind(".json")  
 
@@ -13,10 +14,11 @@ def aisleURL(url:str, aisle:str)->str:
         url = url[start_index:end_index]
         new_url = f'{url}/{aisle}.json'
     else:
-        return print("Subaisle not found in the string.")
+        return print("Something went wrong")
     return new_url
 
 def subAisleURL(url:str, aisle:str, sub_aisle:str)->str:
+    """Create subAisle URL"""
     start_index = url.rfind("h")  
     end_index = url.rfind(".json")  
 
@@ -27,17 +29,18 @@ def subAisleURL(url:str, aisle:str, sub_aisle:str)->str:
         return print("Subaisle not found in the string.")
     return new_url
 
-def storeId(string:str)->str:
-    """find store_id"""
-    start_index = string.rfind("/") + 1  
-    end_index = string.rfind(".json")  
+def storeId(url:str)->str:
+    """find store_id from URL"""
+    start_index = url.rfind("/") + 1  
+    end_index = url.rfind(".json")  
     if start_index != -1 and end_index != -1:
-        store_id = string[start_index:end_index]
+        store_id = url[start_index:end_index]
     else:
-        return print("storeId not found in the string.")
+        return print("storeId not found in the url.")
     return store_id
 
 def aisles(url: str)->list:
+    """return an aisles list of a given store"""
     store_id=storeId(url)
     aisles_list=[]
     request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/catalogo'}
@@ -67,6 +70,7 @@ def aisles(url: str)->list:
     return aisles_list
 
 def subAisles(url:str, aisle:str)->list:
+    """return a subAisles list of a given store aisle"""
     sub_aisles_list=[]
     store_id=storeId(url)
     sub_aisle_url=aisleURL(url, aisle)
@@ -88,7 +92,6 @@ def subAisles(url:str, aisle:str)->list:
     sub_aisles_response = storefront['sub_aisles_response']
     data = sub_aisles_response['data']
     components = data['components']
-
     for component in components:
         resource = component['resource']
         sub_aisle = resource['friendly_url']
@@ -100,20 +103,25 @@ def subAisles(url:str, aisle:str)->list:
 # url = f"https://www.rappi.com.br/_next/data/OQW5XdLHt3Z3a5AIQ4kxd/pt-BR/ssg/900027422-verdemar.json"
 url = input('Request URL:')
 
+#Create list of all store aisles
 aisles_list = aisles(url)
+
+#Create a dict of all subAisles of store aisles
 aisles_dict = {}
 for aisle in aisles_list:
     aisles_dict[aisle] = subAisles(url,aisle)
 
+#Products scraper
 products_list = []
 store_id = storeId(url)
 print(f'STARTING TO SCRAPE {store_id} PRODUCTS')
 for key in aisles_dict:
-    values = aisles_dict[key]
-    first_value = values[0]
-    request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/{key}/{first_value}'}
-    for value in values:
-        sub_aisle_url = subAisleURL(url,key,value)
+    aisle = key
+    subAisles_list = aisles_dict[key]
+    subAisle_heather = subAisles_list[0]
+    request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/{aisle}/{subAisle_heather}'}
+    for subAisle in subAisles_list:
+        sub_aisle_url = subAisleURL(url,aisle,subAisle)
         response = requests.get(sub_aisle_url, headers=request_heather)
         if response.status_code == 429:
             print('TOO MANY REQUESTS: WAIT 1m')
@@ -132,11 +140,10 @@ for key in aisles_dict:
 
         pageProps = json_data['pageProps']
         fallback = pageProps['fallback']
-        storefront = fallback[f'storefront/{store_id}/{key}/{value}']
+        storefront = fallback[f'storefront/{store_id}/{aisle}/{subAisle}']
         aisle_detail_response = storefront['aisle_detail_response']
         data = aisle_detail_response['data']
         components = data['components']
-
         for component in components:
             resource = component['resource']
             products = resource['products']
@@ -148,12 +155,13 @@ for key in aisles_dict:
         current_datetime = datetime.now()
         formatted_datetime = current_datetime.strftime("%Y-%m-%d | %H:%M:%S")
         for product in products_list:
+            #add formatted_datetime in the beginning of the list
             items = list(product.items())
             items.insert(0, ('collected_at', formatted_datetime))
             product = dict(items)
             new_products_list.append(product)
 
-    print(f'{key} PRODUCTS SCRAPED:{len(new_products_list)}')
+    print(f'{aisle} PRODUCTS SCRAPED:{len(new_products_list)}')
         
 print(f'TOTAL PRODUCTS:{len(new_products_list)}')
 
@@ -163,16 +171,16 @@ with open(f'{jsonFile}.json', 'w') as fp:
     json.dump(new_products_list, fp, indent=4)
 print("JSON file created!") 
 
-json_file_path = f'{jsonFile}.json'
 # Read the JSON file
+json_file_path = f'{jsonFile}.json'
 with open(json_file_path, "r") as json_file:
     json_data = json.load(json_file)
 
 # Extract the headers from the first JSON object
 headers = list(json_data[0].keys())
 
-csv_file_path = f'Rappi_{store_id}.csv'
 # Write the JSON data to a CSV file
+csv_file_path = f'Rappi_{store_id}.csv'
 with open(csv_file_path, "w", encoding="utf-8", newline="") as csv_file:
     writer = csv.DictWriter(csv_file, fieldnames=headers)
 

@@ -5,21 +5,21 @@ import re
 import csv
 from datetime import datetime
 
-def search(string:str)->dict:
+def search(url:str)->dict:
     string_dict = {}
     """find sub_aisle"""
-    start_index = string.rfind("/") + 1  # Find the index of the last '/'
-    end_index = string.rfind(".json")  # Find the index of '.json'
+    start_index = url.rfind("/") + 1  # Find the index of the last '/' in url
+    end_index = url.rfind(".json")  # Find the index of '.json'
 
     if start_index != -1 and end_index != -1:
-        sub_aisle = string[start_index:end_index]
+        sub_aisle = url[start_index:end_index]
         string_dict['sub_aisle'] = sub_aisle 
     else:
         return print("Subaisle not found in the string.")
 
     """find aisle"""
     pattern = rf"/([a-zA-Z]+)/{sub_aisle}.json"
-    match = re.search(pattern, string)
+    match = re.search(pattern, url)
 
     if match:
         aisle = match.group(1)
@@ -29,7 +29,7 @@ def search(string:str)->dict:
 
     """find store"""
     pattern = rf"/([^/]+)/{aisle}"
-    match = re.search(pattern, string)
+    match = re.search(pattern, url)
 
     if match:
         store = match.group(1)
@@ -62,7 +62,6 @@ def sub_aisleScraper(url:str, referer:str, sub_aisle:str, aisle:str, store:str)-
     aisle_detail_response = storefront['aisle_detail_response']
     data = aisle_detail_response['data']
     components = data['components']
-
     for component in components:
         resource = component['resource']
         products = resource['products']
@@ -84,6 +83,7 @@ def sub_aisleScraper(url:str, referer:str, sub_aisle:str, aisle:str, store:str)-
 """EXAMPLE OF URL AND REFERER"""    
 # url = 'https://www.rappi.com.br/_next/data/OQW5XdLHt3Z3a5AIQ4kxd/pt-BR/ssg/900027422-verdemar/hortifruti/frutas.json'
 # referer = 'https://www.rappi.com.br/lojas/900027422-verdemar/hortifruti/frutas'
+
 url = input('Request URL:')
 referer = input('Referer:')
 

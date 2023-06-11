@@ -80,12 +80,13 @@ def sub_aisleScraper(url:str, referer:str, sub_aisle:str, aisle:str, store:str)-
         new_products_list.append(product)
 
     return new_products_list
-    
+
+"""EXAMPLE OF URL AND REFERER"""    
 # url = 'https://www.rappi.com.br/_next/data/OQW5XdLHt3Z3a5AIQ4kxd/pt-BR/ssg/900027422-verdemar/hortifruti/frutas.json'
 # referer = 'https://www.rappi.com.br/lojas/900027422-verdemar/hortifruti/frutas'
-
 url = input('Request URL:')
 referer = input('Referer:')
+
 url_dict = search(url)
 sub_aisle = url_dict['sub_aisle']
 aisle = url_dict['aisle']
@@ -109,7 +110,7 @@ headers = list(json_data[0].keys())
 
 csv_file_path = f'Rappi_{store}_{aisle}_{sub_aisle}.csv'
 # Write the JSON data to a CSV file
-with open(csv_file_path, "w", newline="") as csv_file:
+with open(csv_file_path, "w", encoding="utf-8", newline="") as csv_file:
     writer = csv.DictWriter(csv_file, fieldnames=headers)
 
     # Write the header row

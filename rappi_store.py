@@ -73,14 +73,6 @@ def aisles(url:str, store_id:str)->list:
     """return an aisles list of a given store"""
     aisles_list=[]
     request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/catalogo'}
-    # status = check_internet_connection()
-    # time.sleep(5)
-    # while status != 200:
-    #     print("No internet connection. Press enter to restart the program when conection is available")
-    #     input()
-    #     status = check_internet_connection()
-    # if status == 200:
-    #     print('INTERNET OK, STARTING REQUESTS')
     response = requests.get(url, headers=request_heather)
     if response.status_code == 429:
         print('TOO MANY REQUESTS: WAIT 1m')
@@ -111,13 +103,6 @@ def subAisles(url:str, aisle:str, store_id:str)->list:
     sub_aisles_list=[]
     aisle_url=aisleURL(url, aisle)
     request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/catalogo'}
-    # status = check_internet_connection()
-    # time.sleep(5)
-    # while status != 200:
-    #     print("No internet connection. Press enter to restart the program when conection is available")
-    #     input()
-    #     status = check_internet_connection()
-    # if status == 200:
     response = requests.get(aisle_url, headers=request_heather)
     if response.status_code == 429:
         print('TOO MANY REQUESTS: WAIT 1m')
@@ -147,7 +132,7 @@ url = input('Request URL:')
 store_id = storeId(url)
 build_id=buildId(url)
 url = f"https://www.rappi.com.br/_next/data/{build_id}/pt-BR/ssg/{store_id}.json"
-s=45
+s=0
 count = 0
 start_datetime = datetime.now()
 formatted_time = start_datetime.strftime("%Y-%m-%d | %H:%M:%S")
@@ -180,7 +165,6 @@ time.sleep(s)
 
 #Products scraper
 products_list = []
-print('AISLES_LIST AND AISLES_DICT DONE')
 print(f'STARTING TO SCRAPE {store_id} PRODUCTS')
 for key in aisles_dict:
     aisle = key
@@ -189,13 +173,6 @@ for key in aisles_dict:
     request_heather = {'referer':f'https://www.rappi.com.br/lojas/{store_id}/{aisle}/{subAisle_heather}'}
     for subAisle in subAisles_list:
         sub_aisle_url = subAisleURL(url,aisle,subAisle)
-        # status = check_internet_connection()
-        # time.sleep(5)
-        # while status != 200:
-        #     print("No internet connection. Press enter to restart the program when conection is available")
-        #     input()
-        #     status = check_internet_connection(url)
-        # if status == 200:
         response = requests.get(sub_aisle_url, headers=request_heather)
         if response.status_code == 429:
             print('TOO MANY REQUESTS: WAIT 1m')
@@ -223,23 +200,23 @@ for key in aisles_dict:
             products = resource['products']
             for product in products:
                 products_list.append(product)
-
-        #add datetime 
-        new_products_list = []
-        current_datetime = datetime.now()
-        formatted_datetime = current_datetime.strftime("%Y-%m-%d | %H:%M:%S")
-        for product in products_list:
-            #add formatted_datetime in the beginning of the list
-            items = list(product.items())
-            items.insert(0, ('collected_at', formatted_datetime))
-            product = dict(items)
-            new_products_list.append(product)
         count +=1
         print(f'{count} REQUESTS DONE')
         time.sleep(s)
 
-    print(f'{aisle} PRODUCTS SCRAPED:{len(new_products_list)}')
+    print(f'{aisle} PRODUCTS SCRAPED:{len(products_list)}')
         
+#add datetime 
+new_products_list = []
+current_datetime = datetime.now()
+formatted_datetime = current_datetime.strftime("%Y-%m-%d | %H:%M:%S")
+for product in products_list:
+    #add formatted_datetime in the beginning of the list
+    items = list(product.items())
+    items.insert(0, ('collected_at', formatted_datetime))
+    product = dict(items)
+    new_products_list.append(product)
+
 print(f'TOTAL PRODUCTS:{len(new_products_list)}')
 start_datetime = datetime.now()
 formatted_starttime = start_datetime.strftime("%Y-%m-%d | %H:%M:%S")

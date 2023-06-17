@@ -59,16 +59,6 @@ def subAisleURL(url:str, aisle:str, sub_aisle:str)->str:
     subAisle_url = f'{string}/{aisle}/{sub_aisle}.json'
     return subAisle_url
 
-# def storeId(url:str)->str:
-#     """find store_id from URL"""
-#     start_index = url.rfind("/") + 1  
-#     end_index = url.rfind(".json")  
-#     if start_index != -1 and end_index != -1:
-#         store_id = url[start_index:end_index]
-#     else:
-#         return print("storeId not found in the url.")
-#     return store_id
-
 def aisles(url:str, store_id:str)->list:
     """return an aisles list of a given store"""
     aisles_list=[]
@@ -126,36 +116,43 @@ def subAisles(url:str, aisle:str, store_id:str)->list:
     
     return  sub_aisles_list
 
+def rate_limit(count):
+    if count == 10:
+        time.sleep(60)
+        print('WAIT 60s')
+        count=0 
+    return count
+
+s=0
+count = 0
 """EXAMPLE OF URL"""
 # url = "https://www.rappi.com.br/lojas/900155885-supermercado-dia/catalogo"
+
 url = input('Request URL:')
 store_id = storeId(url)
 build_id=buildId(url)
 url = f"https://www.rappi.com.br/_next/data/{build_id}/pt-BR/ssg/{store_id}.json"
-s=0
-count = 0
 start_datetime = datetime.now()
 formatted_time = start_datetime.strftime("%Y-%m-%d | %H:%M:%S")
 print(f'STARTING SCRAPING: {formatted_time}')
+
 #Create list of all store aisles
 aisles_list = aisles(url, store_id)
 count +=1
-print(f'{count} REQUESTS DONE')
+rate_limit(count)
 start_datetime = datetime.now()
 formatted_time = start_datetime.strftime("%Y-%m-%d | %H:%M:%S")
 print(F'AISLES_LIST DONE AT:{formatted_time}')
-
 time.sleep(s)
 
 #Create a dict of all subAisles of store aisles
-
 aisles_dict = {}
 for aisle in aisles_list:
     aisles_dict[aisle] = subAisles(url,aisle, store_id)
     start_datetime = datetime.now()
     formatted_time = start_datetime.strftime("%Y-%m-%d | %H:%M:%S")
     count +=1
-    print(f'{count} REQUESTS DONE')
+    rate_limit(count)
     time.sleep(s)
 
 start_datetime = datetime.now()
@@ -201,7 +198,7 @@ for key in aisles_dict:
             for product in products:
                 products_list.append(product)
         count +=1
-        print(f'{count} REQUESTS DONE')
+        rate_limit(count)
         time.sleep(s)
 
     print(f'{aisle} PRODUCTS SCRAPED:{len(products_list)}')

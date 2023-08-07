@@ -41,6 +41,7 @@ scrapeNetworkRequests();
 
 def result():
   authorization = subprocess.run(['node', '-e', node_code], capture_output=True, text=True)
+  print(authorization)
   return authorization
 
 def update_xlsx_with_address(xlsx_file, address):

@@ -15,7 +15,7 @@ new_error_list = []
 node_code = """
 const puppeteer = require('puppeteer');
 async function scrapeNetworkRequests() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless: true});
   const page = await browser.newPage();
   await page.setRequestInterception(true);
   try{

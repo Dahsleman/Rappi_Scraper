@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo "install linux dependencies"
+
+sudo apt-get update
+sudo apt-get install libasound2 libgbm1 libnss3 libxss1
+
 if command -v python3 &>/dev/null;then
         echo "Python is installed. Version:"
         python3 --version

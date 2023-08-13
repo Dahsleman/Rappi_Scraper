@@ -15,7 +15,7 @@ new_error_list = []
 node_code = """
 const puppeteer = require('puppeteer');
 async function scrapeNetworkRequests() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless: true});
   const page = await browser.newPage();
   await page.setRequestInterception(true);
   try{
@@ -41,6 +41,7 @@ scrapeNetworkRequests();
 
 def result():
   authorization = subprocess.run(['node', '-e', node_code], capture_output=True, text=True)
+  print(authorization)
   return authorization
 
 def update_xlsx_with_address(xlsx_file, address):

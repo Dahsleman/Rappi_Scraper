@@ -55,6 +55,7 @@ if bearer_token:
         exit()
 else:
     print('ERROR to update bearer token')
+    exit()
 
 current_datetime = datetime.now()
 formatted_time = current_datetime.strftime("%Y-%m-%d | %H:%M:%S")
@@ -87,7 +88,7 @@ for product in new_products_list:
     datetime_error_list.append(product)
 print(f'TOTAL PRODUCTS SCRAPED: {len(datetime_products_list)}')
 
-directory_path = "G:/My Drive/kompru/data"
+directory_path = "/home/luis/Documents/repos/Rappi_Scraper/rappi-search/Data/"
 directory_name = client
 
 try:

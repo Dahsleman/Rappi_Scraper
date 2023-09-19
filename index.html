@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Text to Excel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    address {
+      width: 300px;
+    }
+    product {
+      width: 200px;
+    }
+    productSearch {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<input type="text" id="address">
+<button onclick="sendText()">Enviar</button>
+<div id="searchAddress"></div>
+<br>
+
+<div id="productSearch">
+  <span>Produto que quer buscar:</span>
+  <input type="text" id="product">
+  <button onclick="buscar()">Buscar</button>
+</div>
+
+<div id="searchStatus"></div>
+
+<div id="excelOutput"></div>  <!-- New: Element to display the CSV content -->
+
+<script>
+  var autocomplete;
+  var zipcode = "";
+
+  function initAutocomplete() {
+    var options = {
+      types: ['address'],
+      componentRestrictions: {'country': 'br'}
+    };
+    
+    autocomplete = new google.maps.places.Autocomplete(document.getElementById('address'), options);
+    autocomplete.addListener('place_changed', fillInAddress);
+  }
+
+  function fillInAddress() {
+    var place = autocomplete.getPlace();
+    
+    zipcode = "";  // Reset the ZIP code
+    for (var i = 0; i < place.address_components.length; i++) {
+      var addressType = place.address_components[i].types[0];
+      if (addressType === "postal_code") {
+        zipcode = place.address_components[i]['long_name'];
+      }
+    }
+
+  }
+
+  async function sendText() {
+    let text = document.getElementById("address").value;
+    if (zipcode) {  // Only append if ZIP exists
+      text += ", " + zipcode; 
+    }
+    document.getElementById("searchAddress").innerText = 'Endereço de pesquisa: ' + text;
+    document.getElementById("productSearch").style.display = 'block';
+
+    const response = await fetch(`http://${serverIp}:3000/save-text`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text})
+    });
+    
+  const result = await response.json();
+  if (response.ok) {
+    alert(result.message);
+  } else {
+    alert(`Error: ${result.message}\nDetails: ${result.error}`);
+  }
+}
+  
+  async function buscar() {
+    const product = document.getElementById("product").value;
+    document.getElementById("searchStatus").innerText = "Buscando '" + product + "':";
+    
+    let response = await fetch(`http://${serverIp}:3000/save-product`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({product})
+    });
+    
+    let result = await response.json();
+    alert(result.message);
+
+    response = await fetch(`http://${serverIp}:3000/run-python`, { method: 'POST' });
+    result = await response.json();
+    if (response.ok) {
+      console.log(result.output);
+    } else {
+      console.error(`Error: ${result.message}\nDetails: ${result.error}`);
+    }
+    
+    const excelResponse = await fetch(`http://${serverIp}:3000/get-excel-output`);
+    const excelData = await excelResponse.json();
+    document.getElementById("excelOutput").innerText = excelData.content;
+}
+
+async function loadGoogleMapsAPI() {
+  const res = await fetch(`http://${serverIp}:3000/get-google-maps-key`);
+  const data = await res.json();
+  const script = document.createElement('script');
+  script.src = `http://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&libraries=places&callback=initAutocomplete`;
+  script.async = true;
+  script.defer = true;
+  document.body.appendChild(script);
+}
+
+(async function () {
+  serverIp = await getServerIp();
+  loadGoogleMapsAPI(serverIp);
+})();
+
+async function getServerIp() {
+    const response = await fetch('/server-ip');
+    const data = await response.text();
+    return data;
+  }
+
+  let serverIp = '';
+  (async function () {
+    serverIp = await getServerIp();
+  })();
+
+</script>
+</body>
+</html>

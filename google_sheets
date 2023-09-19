@@ -1,0 +1,15 @@
+async function saveTextToSheet(text, sheetsAPI) {
+  const spreadsheetId = 'your_spreadsheet_id';
+  const sheetName = 'Sheet1';
+  const values = [[text]];
+  
+  // Append data to Google Sheet
+  await sheetsAPI.spreadsheets.values.append({
+    spreadsheetId,
+    range: `${sheetName}!A:A`,
+    valueInputOption: 'RAW',
+    resource: {
+      values
+    }
+  });
+}
